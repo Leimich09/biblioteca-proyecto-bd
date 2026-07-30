@@ -15,4 +15,18 @@ axiosClient.interceptors.request.use((config) => {
   return config
 })
 
+// Si el backend responde 401 (token inválido o expirado), cierra la sesión
+// automáticamente y recarga la página para regresar al login limpio.
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('nombre')
+      window.location.reload()
+    }
+    return Promise.reject(error)
+  }
+)
+
 export default axiosClient

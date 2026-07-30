@@ -1,21 +1,33 @@
-import { CForm, CFormInput, CButton, CAlert, CRow, CCol, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell } from '@coreui/react'
+import { CForm, CFormInput, CFormSelect, CButton, CAlert, CRow, CCol, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell } from '@coreui/react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as yup from 'yup'
 import { obtenerLectores, crearLector } from '../../api/lectorService'
+
+const CARRERAS = [
+  'Ingeniería en Sistemas',
+  'Administración de Empresas',
+  'Medicina',
+  'Derecho',
+  'Arquitectura',
+  'Psicología',
+  'Contabilidad y Auditoría',
+  'Ingeniería Civil'
+]
 
 const schema = yup.object().shape({
   nombres: yup.string().required('Los nombres son requeridos'),
   apellidos: yup.string().required('Los apellidos son requeridos'),
   correo: yup.string().email('Correo inválido').required('El correo es requerido'),
-  carrera: yup.string(),
+  carrera: yup.string().required('Seleccione una carrera'),
 })
 
 export default function LectorList() {
   const [lectores, setLectores] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   const {
     register,
@@ -50,6 +62,16 @@ export default function LectorList() {
     }
   }
 
+  const lectoresFiltrados = useMemo(() => {
+    const texto = busqueda.toLowerCase().trim()
+    if (!texto) return lectores
+    return lectores.filter((l) =>
+      l.nombres.toLowerCase().includes(texto) ||
+      l.apellidos.toLowerCase().includes(texto) ||
+      (l.carrera || '').toLowerCase().includes(texto)
+    )
+  }, [lectores, busqueda])
+
   return (
     <div>
       <div className="app-card mb-4">
@@ -68,7 +90,12 @@ export default function LectorList() {
               <CFormInput label="Correo" className="mb-3" {...register('correo')} invalid={!!errors.correo} feedback={errors.correo?.message} />
             </CCol>
             <CCol md={3}>
-              <CFormInput label="Carrera" className="mb-3" {...register('carrera')} />
+              <CFormSelect label="Carrera" className="mb-3" {...register('carrera')} invalid={!!errors.carrera} feedback={errors.carrera?.message}>
+                <option value="">Seleccione</option>
+                {CARRERAS.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </CFormSelect>
             </CCol>
           </CRow>
           <CButton color="primary" type="submit">Guardar Lector</CButton>
@@ -76,7 +103,13 @@ export default function LectorList() {
       </div>
 
       <div className="app-card">
-        <h5 className="mb-3">Lectores registrados ({lectores.length})</h5>
+        <h5 className="mb-3">Lectores registrados ({lectoresFiltrados.length} de {lectores.length})</h5>
+        <CFormInput
+          placeholder="Buscar por nombre, apellido o carrera..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="mb-3"
+        />
         <CTable striped responsive bordered>
           <CTableHead>
             <CTableRow>
@@ -87,7 +120,7 @@ export default function LectorList() {
             </CTableRow>
           </CTableHead>
           <CTableBody>
-            {lectores.map((l) => (
+            {lectoresFiltrados.map((l) => (
               <CTableRow key={l._id}>
                 <CTableDataCell>{l.nombres}</CTableDataCell>
                 <CTableDataCell>{l.apellidos}</CTableDataCell>

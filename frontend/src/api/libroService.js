@@ -17,3 +17,12 @@ export const crearLibro = async (data) => {
     throw error.response?.data?.mensaje || 'Error al crear el libro'
   }
 }
+
+export const eliminarLibro = async (id) => {
+  try {
+    const response = await axiosClient.delete('/libros', { params: { id } })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.mensaje || 'Error al eliminar el libro'
+  }
+}

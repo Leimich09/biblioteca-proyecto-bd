@@ -1,5 +1,5 @@
-import { CForm, CFormSelect, CButton, CAlert, CRow, CCol, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CBadge } from '@coreui/react'
-import { useEffect, useState } from 'react'
+import { CForm, CFormInput, CButton, CAlert, CRow, CCol, CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell, CBadge, CButtonGroup } from '@coreui/react'
+import { useEffect, useMemo, useState } from 'react'
 import { obtenerLibros } from '../../api/libroService'
 import { obtenerLectores } from '../../api/lectorService'
 import { obtenerPrestamos, crearPrestamo, devolverPrestamo } from '../../api/prestamoService'
@@ -8,10 +8,17 @@ export default function PrestamoList() {
   const [libros, setLibros] = useState([])
   const [lectores, setLectores] = useState([])
   const [prestamos, setPrestamos] = useState([])
-  const [idLibro, setIdLibro] = useState('')
-  const [idLector, setIdLector] = useState('')
+
+  // Texto que el usuario escribe en los buscadores (no el id todavía)
+  const [textoLibro, setTextoLibro] = useState('')
+  const [textoLector, setTextoLector] = useState('')
+
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
+
+  // Filtro del historial
+  const [busquedaHistorial, setBusquedaHistorial] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('todos')
 
   const cargarTodo = async () => {
     try {
@@ -32,21 +39,29 @@ export default function PrestamoList() {
     cargarTodo()
   }, [])
 
+  // Convierte lo escrito en el buscador de libro a un id real, si coincide exactamente con una opción de la lista
+  const libroSeleccionado = libros.find(
+    (l) => `${l.titulo} (${l.ejemplaresDisponibles} disponibles)` === textoLibro
+  )
+  const lectorSeleccionado = lectores.find(
+    (l) => `${l.nombres} ${l.apellidos}` === textoLector
+  )
+
   const onSubmit = async (e) => {
     e.preventDefault()
     setMensaje('')
     setError('')
 
-    if (!idLibro || !idLector) {
-      setError('Debe seleccionar un libro y un lector')
+    if (!libroSeleccionado || !lectorSeleccionado) {
+      setError('Debe seleccionar un libro y un lector válidos de la lista (use el buscador)')
       return
     }
 
     try {
-      await crearPrestamo(idLibro, idLector)
+      await crearPrestamo(libroSeleccionado._id, lectorSeleccionado._id)
       setMensaje('Préstamo registrado con éxito')
-      setIdLibro('')
-      setIdLector('')
+      setTextoLibro('')
+      setTextoLector('')
       cargarTodo()
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Error al registrar el préstamo')
@@ -72,6 +87,25 @@ export default function PrestamoList() {
     )
   }
 
+  // Historial filtrado por texto (libro o lector) y por estado
+  const prestamosFiltrados = useMemo(() => {
+    return prestamos.filter((p) => {
+      const tituloLibro = p.idLibro?.titulo || ''
+      const nombreLector = p.idLector ? `${p.idLector.nombres} ${p.idLector.apellidos}` : ''
+      const coincideTexto =
+        busquedaHistorial.trim() === '' ||
+        tituloLibro.toLowerCase().includes(busquedaHistorial.toLowerCase()) ||
+        nombreLector.toLowerCase().includes(busquedaHistorial.toLowerCase())
+
+      let coincideEstado = true
+      if (filtroEstado === 'prestado') coincideEstado = p.estado === 'prestado' && !esAtrasado(p)
+      if (filtroEstado === 'atrasado') coincideEstado = esAtrasado(p)
+      if (filtroEstado === 'devuelto') coincideEstado = p.estado === 'devuelto'
+
+      return coincideTexto && coincideEstado
+    })
+  }, [prestamos, busquedaHistorial, filtroEstado])
+
   return (
     <div>
       <div className="app-card mb-4">
@@ -81,24 +115,34 @@ export default function PrestamoList() {
         <CForm onSubmit={onSubmit}>
           <CRow>
             <CCol md={5}>
-              <CFormSelect label="Libro" value={idLibro} onChange={(e) => setIdLibro(e.target.value)} className="mb-3">
-                <option value="">-- Seleccionar libro --</option>
+              <CFormInput
+                label="Libro (escriba para buscar)"
+                list="lista-libros"
+                placeholder="Escriba el título..."
+                value={textoLibro}
+                onChange={(e) => setTextoLibro(e.target.value)}
+                className="mb-3"
+              />
+              <datalist id="lista-libros">
                 {libros.map((l) => (
-                  <option key={l._id} value={l._id} disabled={l.ejemplaresDisponibles <= 0}>
-                    {l.titulo} ({l.ejemplaresDisponibles} disponibles)
-                  </option>
+                  <option key={l._id} value={`${l.titulo} (${l.ejemplaresDisponibles} disponibles)`} />
                 ))}
-              </CFormSelect>
+              </datalist>
             </CCol>
             <CCol md={5}>
-              <CFormSelect label="Lector" value={idLector} onChange={(e) => setIdLector(e.target.value)} className="mb-3">
-                <option value="">-- Seleccionar lector --</option>
+              <CFormInput
+                label="Lector (escriba para buscar)"
+                list="lista-lectores"
+                placeholder="Escriba el nombre..."
+                value={textoLector}
+                onChange={(e) => setTextoLector(e.target.value)}
+                className="mb-3"
+              />
+              <datalist id="lista-lectores">
                 {lectores.map((l) => (
-                  <option key={l._id} value={l._id}>
-                    {l.nombres} {l.apellidos}
-                  </option>
+                  <option key={l._id} value={`${l.nombres} ${l.apellidos}`} />
                 ))}
-              </CFormSelect>
+              </datalist>
             </CCol>
             <CCol md={2} className="d-flex align-items-end mb-3">
               <CButton color="primary" type="submit" className="w-100">Prestar</CButton>
@@ -108,7 +152,23 @@ export default function PrestamoList() {
       </div>
 
       <div className="app-card">
-        <h5 className="mb-3">Historial de préstamos ({prestamos.length})</h5>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <h5 className="mb-0">Historial de préstamos ({prestamosFiltrados.length} de {prestamos.length})</h5>
+          <CButtonGroup size="sm">
+            <CButton color={filtroEstado === 'todos' ? 'primary' : 'outline-secondary'} onClick={() => setFiltroEstado('todos')}>Todos</CButton>
+            <CButton color={filtroEstado === 'prestado' ? 'primary' : 'outline-secondary'} onClick={() => setFiltroEstado('prestado')}>Prestados</CButton>
+            <CButton color={filtroEstado === 'atrasado' ? 'primary' : 'outline-secondary'} onClick={() => setFiltroEstado('atrasado')}>Atrasados</CButton>
+            <CButton color={filtroEstado === 'devuelto' ? 'primary' : 'outline-secondary'} onClick={() => setFiltroEstado('devuelto')}>Devueltos</CButton>
+          </CButtonGroup>
+        </div>
+
+        <CFormInput
+          placeholder="Buscar por libro o lector..."
+          value={busquedaHistorial}
+          onChange={(e) => setBusquedaHistorial(e.target.value)}
+          className="mb-3"
+        />
+
         <CTable striped responsive bordered>
           <CTableHead>
             <CTableRow>
@@ -121,7 +181,7 @@ export default function PrestamoList() {
             </CTableRow>
           </CTableHead>
           <CTableBody>
-            {prestamos.map((p) => (
+            {prestamosFiltrados.map((p) => (
               <CTableRow key={p._id}>
                 <CTableDataCell>{p.idLibro?.titulo || '(libro eliminado)'}</CTableDataCell>
                 <CTableDataCell>{p.idLector ? `${p.idLector.nombres} ${p.idLector.apellidos}` : '(lector eliminado)'}</CTableDataCell>

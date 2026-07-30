@@ -1,9 +1,9 @@
-import { CForm, CFormInput, CButton, CAlert, CRow, CCol } from '@coreui/react'
+import { CForm, CFormInput, CButton, CAlert, CRow, CCol, CListGroup, CListGroupItem, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useEffect, useState } from 'react'
 import * as yup from 'yup'
-import { obtenerLibros, crearLibro } from '../../api/libroService'
+import { obtenerLibros, crearLibro, eliminarLibro } from '../../api/libroService'
 
 const schema = yup.object().shape({
   titulo: yup.string().required('El título es requerido'),
@@ -19,10 +19,20 @@ export default function LibroList() {
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
 
+  // Búsqueda en Open Library
+  const [terminoBusqueda, setTerminoBusqueda] = useState('')
+  const [resultadosBusqueda, setResultadosBusqueda] = useState([])
+  const [buscando, setBuscando] = useState(false)
+  const [imagenSeleccionada, setImagenSeleccionada] = useState('')
+
+  // Confirmación de eliminación
+  const [confirmando, setConfirmando] = useState({ visible: false, idLibro: null, titulo: '' })
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) })
 
@@ -39,16 +49,69 @@ export default function LibroList() {
     cargarLibros()
   }, [])
 
+  // Busca en Open Library y muestra hasta 5 resultados para elegir
+  const buscarEnOpenLibrary = async () => {
+    if (!terminoBusqueda.trim()) return
+    setBuscando(true)
+    setResultadosBusqueda([])
+    try {
+      const campos = 'title,author_name,first_publish_year,publisher,subject,cover_i'
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(terminoBusqueda)}&limit=5&fields=${campos}`
+      const respuesta = await fetch(url)
+      const data = await respuesta.json()
+      setResultadosBusqueda(data.docs || [])
+    } catch {
+      setError('No se pudo conectar con Open Library. Puedes llenar el formulario manualmente.')
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  // Al elegir un resultado, autocompleta el formulario
+  const seleccionarResultado = (libro) => {
+    setValue('titulo', libro.title || '')
+    setValue('autor', (libro.author_name && libro.author_name.join(', ')) || '')
+    setValue('categoria', (libro.subject && libro.subject[0]) || 'General')
+    setValue('editorial', (libro.publisher && libro.publisher[0]) || '')
+    setValue('anioPublicacion', libro.first_publish_year || '')
+    setImagenSeleccionada(libro.cover_i ? `https://covers.openlibrary.org/b/id/${libro.cover_i}-M.jpg` : '')
+    setResultadosBusqueda([])
+    setTerminoBusqueda('')
+  }
+
   const onSubmit = async (data) => {
     setMensaje('')
     setError('')
     try {
-      await crearLibro({ ...data, ejemplaresDisponibles: data.ejemplaresTotales })
+      await crearLibro({
+        ...data,
+        ejemplaresDisponibles: data.ejemplaresTotales,
+        imagenUrl: imagenSeleccionada
+      })
       setMensaje('Libro agregado con éxito')
       reset()
+      setImagenSeleccionada('')
       cargarLibros()
     } catch (err) {
       setError(typeof err === 'string' ? err : 'Error al agregar el libro')
+    }
+  }
+
+  const pedirConfirmacionEliminar = (libro) => {
+    setConfirmando({ visible: true, idLibro: libro._id, titulo: libro.titulo })
+  }
+
+  const confirmarEliminacion = async () => {
+    setMensaje('')
+    setError('')
+    try {
+      await eliminarLibro(confirmando.idLibro)
+      setMensaje('Libro eliminado correctamente')
+      cargarLibros()
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Error al eliminar el libro')
+    } finally {
+      setConfirmando({ visible: false, idLibro: null, titulo: '' })
     }
   }
 
@@ -58,6 +121,38 @@ export default function LibroList() {
         <h5 className="mb-3">Agregar libro</h5>
         {mensaje && <CAlert color="success">{mensaje}</CAlert>}
         {error && <CAlert color="danger">{error}</CAlert>}
+
+        {/* Buscador en Open Library */}
+        <CRow className="mb-3">
+          <CCol md={9}>
+            <CFormInput
+              placeholder="Buscar libro en Open Library (ej: Cien años de soledad)"
+              value={terminoBusqueda}
+              onChange={(e) => setTerminoBusqueda(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), buscarEnOpenLibrary())}
+            />
+          </CCol>
+          <CCol md={3}>
+            <CButton color="secondary" className="w-100" onClick={buscarEnOpenLibrary} disabled={buscando}>
+              {buscando ? 'Buscando...' : 'Buscar'}
+            </CButton>
+          </CCol>
+        </CRow>
+
+        {resultadosBusqueda.length > 0 && (
+          <CListGroup className="mb-3">
+            {resultadosBusqueda.map((r, i) => (
+              <CListGroupItem key={i} component="button" type="button" onClick={() => seleccionarResultado(r)}>
+                <strong>{r.title}</strong> — {(r.author_name && r.author_name.join(', ')) || 'Autor desconocido'} {r.first_publish_year ? `(${r.first_publish_year})` : ''}
+              </CListGroupItem>
+            ))}
+          </CListGroup>
+        )}
+
+        <p className="text-muted" style={{ fontSize: '0.8rem' }}>
+          Busca y selecciona un resultado para autocompletar el formulario, o llénalo manualmente.
+        </p>
+
         <CForm onSubmit={handleSubmit(onSubmit)}>
           <CRow>
             <CCol md={4}>
@@ -81,6 +176,22 @@ export default function LibroList() {
               <CFormInput label="Ejemplares" type="number" className="mb-3" {...register('ejemplaresTotales')} invalid={!!errors.ejemplaresTotales} feedback={errors.ejemplaresTotales?.message} />
             </CCol>
           </CRow>
+          <CRow>
+            <CCol md={8}>
+              <CFormInput
+                label="URL de portada (opcional, si no usaste el buscador)"
+                placeholder="https://..."
+                className="mb-3"
+                value={imagenSeleccionada}
+                onChange={(e) => setImagenSeleccionada(e.target.value)}
+              />
+            </CCol>
+          </CRow>
+          {imagenSeleccionada && (
+            <div className="mb-3">
+              <img src={imagenSeleccionada} alt="portada seleccionada" style={{ height: 90 }} />
+            </div>
+          )}
           <CButton color="primary" type="submit">Guardar Libro</CButton>
         </CForm>
       </div>
@@ -99,13 +210,31 @@ export default function LibroList() {
               )}
               <strong>{libro.titulo}</strong>
               <p className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>{libro.autor}</p>
-              <p className="mb-0" style={{ fontSize: '0.8rem' }}>
+              <p className="mb-2" style={{ fontSize: '0.8rem' }}>
                 Disponibles: <strong>{libro.ejemplaresDisponibles}</strong> / {libro.ejemplaresTotales}
               </p>
+              <CButton color="danger" size="sm" variant="outline" onClick={() => pedirConfirmacionEliminar(libro)}>
+                Eliminar
+              </CButton>
             </div>
           </CCol>
         ))}
       </CRow>
+
+      <CModal visible={confirmando.visible} onClose={() => setConfirmando({ visible: false, idLibro: null, titulo: '' })}>
+        <CModalHeader>Confirmar eliminación</CModalHeader>
+        <CModalBody>
+          ¿Está segura/o de eliminar <strong>{confirmando.titulo}</strong> del catálogo? Esta acción no se puede deshacer.
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setConfirmando({ visible: false, idLibro: null, titulo: '' })}>
+            Cancelar
+          </CButton>
+          <CButton color="danger" onClick={confirmarEliminacion}>
+            Eliminar
+          </CButton>
+        </CModalFooter>
+      </CModal>
     </div>
   )
 }

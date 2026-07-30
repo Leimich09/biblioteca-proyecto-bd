@@ -1,0 +1,62 @@
+body {
+  background-color: #F5F6F8;
+  color: #22303C;
+}
+
+/* ===== Pantalla de login ===== */
+.login-page {
+  max-width: 380px;
+  margin: 80px auto 0;
+  padding: 0 16px;
+}
+
+.login-page .login-hint {
+  border-top: 1px solid #E5E8EC;
+  padding-top: 14px;
+}
+
+/* ===== Barra superior ===== */
+.app-header {
+  background-color: #2E4057;
+  color: #fff;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.app-header h4 {
+  color: #fff;
+  margin: 0;
+}
+
+/* ===== Tarjetas de contenido ===== */
+.app-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* ===== Tarjetas de estadísticas del dashboard ===== */
+.stat-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 18px;
+  text-align: center;
+}
+
+.stat-card .stat-numero {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2E4057;
+}
+
+.stat-card .stat-label {
+  font-size: 0.85rem;
+  color: #6B7785;
+}

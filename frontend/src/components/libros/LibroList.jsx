@@ -1,7 +1,7 @@
 import { CForm, CFormInput, CButton, CAlert, CRow, CCol, CListGroup, CListGroupItem, CModal, CModalHeader, CModalBody, CModalFooter } from '@coreui/react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as yup from 'yup'
 import { obtenerLibros, crearLibro, eliminarLibro } from '../../api/libroService'
 
@@ -27,6 +27,9 @@ export default function LibroList() {
 
   // Confirmación de eliminación
   const [confirmando, setConfirmando] = useState({ visible: false, idLibro: null, titulo: '' })
+
+  // Buscador del catálogo
+  const [busquedaCatalogo, setBusquedaCatalogo] = useState('')
 
   const {
     register,
@@ -100,6 +103,18 @@ export default function LibroList() {
   const pedirConfirmacionEliminar = (libro) => {
     setConfirmando({ visible: true, idLibro: libro._id, titulo: libro.titulo })
   }
+
+  // Filtra el catálogo por título, autor o categoría
+  const librosFiltrados = useMemo(() => {
+    if (!busquedaCatalogo.trim()) return libros
+    const termino = busquedaCatalogo.toLowerCase()
+    return libros.filter(
+      (l) =>
+        l.titulo?.toLowerCase().includes(termino) ||
+        l.autor?.toLowerCase().includes(termino) ||
+        l.categoria?.toLowerCase().includes(termino)
+    )
+  }, [libros, busquedaCatalogo])
 
   const confirmarEliminacion = async () => {
     setMensaje('')
@@ -196,9 +211,20 @@ export default function LibroList() {
         </CForm>
       </div>
 
-      <h5 className="mb-3">Catálogo ({libros.length} libros)</h5>
+      <CRow className="mb-3 align-items-center">
+        <CCol md={6}>
+          <h5 className="mb-0">Catálogo ({librosFiltrados.length} de {libros.length} libros)</h5>
+        </CCol>
+        <CCol md={6}>
+          <CFormInput
+            placeholder="Buscar por título, autor o categoría..."
+            value={busquedaCatalogo}
+            onChange={(e) => setBusquedaCatalogo(e.target.value)}
+          />
+        </CCol>
+      </CRow>
       <CRow>
-        {libros.map((libro) => (
+        {librosFiltrados.map((libro) => (
           <CCol md={3} key={libro._id} className="mb-4">
             <div className="app-card h-100 text-center">
               {libro.imagenUrl ? (
@@ -220,6 +246,9 @@ export default function LibroList() {
           </CCol>
         ))}
       </CRow>
+      {librosFiltrados.length === 0 && (
+        <p className="text-muted">No se encontraron libros que coincidan con "{busquedaCatalogo}".</p>
+      )}
 
       <CModal visible={confirmando.visible} onClose={() => setConfirmando({ visible: false, idLibro: null, titulo: '' })}>
         <CModalHeader>Confirmar eliminación</CModalHeader>

@@ -62,13 +62,15 @@ export default function LectorList() {
     }
   }
 
+  // Filtra por nombres, apellidos o carrera
   const lectoresFiltrados = useMemo(() => {
-    const texto = busqueda.toLowerCase().trim()
-    if (!texto) return lectores
-    return lectores.filter((l) =>
-      l.nombres.toLowerCase().includes(texto) ||
-      l.apellidos.toLowerCase().includes(texto) ||
-      (l.carrera || '').toLowerCase().includes(texto)
+    if (!busqueda.trim()) return lectores
+    const termino = busqueda.toLowerCase()
+    return lectores.filter(
+      (l) =>
+        l.nombres?.toLowerCase().includes(termino) ||
+        l.apellidos?.toLowerCase().includes(termino) ||
+        l.carrera?.toLowerCase().includes(termino)
     )
   }, [lectores, busqueda])
 
@@ -103,33 +105,45 @@ export default function LectorList() {
       </div>
 
       <div className="app-card">
-        <h5 className="mb-3">Lectores registrados ({lectoresFiltrados.length} de {lectores.length})</h5>
-        <CFormInput
-          placeholder="Buscar por nombre, apellido o carrera..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="mb-3"
-        />
-        <CTable striped responsive bordered>
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>Nombres</CTableHeaderCell>
-              <CTableHeaderCell>Apellidos</CTableHeaderCell>
-              <CTableHeaderCell>Correo</CTableHeaderCell>
-              <CTableHeaderCell>Carrera</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            {lectoresFiltrados.map((l) => (
-              <CTableRow key={l._id}>
-                <CTableDataCell>{l.nombres}</CTableDataCell>
-                <CTableDataCell>{l.apellidos}</CTableDataCell>
-                <CTableDataCell>{l.correo}</CTableDataCell>
-                <CTableDataCell>{l.carrera || '-'}</CTableDataCell>
+        <CRow className="mb-3 align-items-center">
+          <CCol md={6}>
+            <h5 className="mb-0">Lectores registrados ({lectoresFiltrados.length} de {lectores.length})</h5>
+          </CCol>
+          <CCol md={6}>
+            <CFormInput
+              placeholder="Buscar por nombre, apellido o carrera..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </CCol>
+        </CRow>
+
+        {/* Contenedor con scroll interno para que la tabla no crezca indefinidamente */}
+        <div className="scroll-interno">
+          <CTable striped responsive bordered>
+            <CTableHead>
+              <CTableRow>
+                <CTableHeaderCell>Nombres</CTableHeaderCell>
+                <CTableHeaderCell>Apellidos</CTableHeaderCell>
+                <CTableHeaderCell>Correo</CTableHeaderCell>
+                <CTableHeaderCell>Carrera</CTableHeaderCell>
               </CTableRow>
-            ))}
-          </CTableBody>
-        </CTable>
+            </CTableHead>
+            <CTableBody>
+              {lectoresFiltrados.map((l) => (
+                <CTableRow key={l._id}>
+                  <CTableDataCell>{l.nombres}</CTableDataCell>
+                  <CTableDataCell>{l.apellidos}</CTableDataCell>
+                  <CTableDataCell>{l.correo}</CTableDataCell>
+                  <CTableDataCell>{l.carrera || '-'}</CTableDataCell>
+                </CTableRow>
+              ))}
+            </CTableBody>
+          </CTable>
+          {lectoresFiltrados.length === 0 && (
+            <p className="text-muted">No se encontraron lectores que coincidan con "{busqueda}".</p>
+          )}
+        </div>
       </div>
     </div>
   )

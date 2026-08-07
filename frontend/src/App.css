@@ -1,62 +1,236 @@
-body {
-  background-color: #F5F6F8;
-  color: #22303C;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+/* ============ Paleta: biblioteca clasica ============ */
+:root {
+  --paper: #F6F1E4;
+  --paper-card: #FFFCF5;
+  --ink: #2B2117;
+  --ink-soft: #6B5D4D;
+  --wine: #6B2737;
+  --wine-dark: #4A1A26;
+  --forest: #2F4538;
+  --brass: #B8863A;
+  --brass-light: #E7C878;
+  --rule: #D9CFB8;
+  --shadow-card: 0 3px 10px rgba(43, 33, 23, 0.10);
 }
 
-/* ===== Pantalla de login ===== */
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: 'Lora', serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  color: var(--wine-dark);
+  letter-spacing: 0.2px;
+}
+
+/* ============ Pantalla de login ============ */
 .login-page {
   max-width: 380px;
-  margin: 80px auto 0;
+  margin: 90px auto 0;
   padding: 0 16px;
 }
 
-.login-page .login-hint {
-  border-top: 1px solid #E5E8EC;
-  padding-top: 14px;
+.login-page h4 {
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
-/* ===== Barra superior ===== */
+.login-page h4::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  background: var(--brass);
+  margin: 14px auto 0;
+}
+
+.login-page .login-hint {
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+  font-family: 'Lora', serif;
+}
+
+/* ============ Barra superior: lomo de libro / estante ============ */
 .app-header {
-  background-color: #2E4057;
-  color: #fff;
-  padding: 16px 24px;
+  background: linear-gradient(180deg, var(--wine) 0%, var(--wine-dark) 100%);
+  color: #F6F1E4;
+  padding: 20px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border-radius: 6px;
+  margin-bottom: 22px;
+  box-shadow: 0 3px 0 var(--brass);
+  position: relative;
 }
 
 .app-header h4 {
-  color: #fff;
+  color: #F6F1E4;
   margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
 }
 
-/* ===== Tarjetas de contenido ===== */
+.app-header .btn-light {
+  font-family: 'Lora', serif;
+  border-radius: 4px;
+}
+
+/* ============ Pestanas de navegacion: estilo separador de libro ============ */
+.nav-tabs {
+  border-bottom: 1px solid var(--rule);
+}
+
+.nav-tabs .nav-link {
+  color: var(--ink-soft);
+  font-family: 'Lora', serif;
+  font-weight: 500;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: 10px 18px;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--wine);
+  border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--wine) !important;
+  background: transparent !important;
+  border-bottom: 3px solid var(--brass) !important;
+  font-weight: 700;
+}
+
+/* ============ Tarjetas de contenido ============ */
 .app-card {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 24px;
+  background-color: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: var(--shadow-card);
+  padding: 26px;
   margin-bottom: 20px;
 }
 
-/* ===== Tarjetas de estadísticas del dashboard ===== */
+/* ============ Tarjetas de estadisticas del dashboard ============ */
 .stat-card {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 18px;
+  background-color: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: var(--shadow-card);
+  padding: 20px;
   text-align: center;
 }
 
 .stat-card .stat-numero {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2E4057;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--wine);
 }
 
 .stat-card .stat-label {
-  font-size: 0.85rem;
-  color: #6B7785;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  font-family: 'Lora', serif;
+}
+
+/* ============ Tarjetas del catalogo: portada de libro con "lomo" lateral ============ */
+.libro-card {
+  background-color: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-left: 5px solid var(--wine);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.libro-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(43, 33, 23, 0.16);
+}
+
+/* Colores de "lomo" alternados, como libros distintos en un estante */
+.catalogo-grid > div:nth-child(4n+1) .libro-card { border-left-color: var(--wine); }
+.catalogo-grid > div:nth-child(4n+2) .libro-card { border-left-color: var(--forest); }
+.catalogo-grid > div:nth-child(4n+3) .libro-card { border-left-color: var(--brass); }
+.catalogo-grid > div:nth-child(4n+4) .libro-card { border-left-color: #3B4B63; }
+
+/* ============ Scroll interno para listas largas ============ */
+.scroll-interno {
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
+.scroll-interno::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-interno::-webkit-scrollbar-thumb {
+  background-color: var(--brass);
+  border-radius: 8px;
+}
+
+.scroll-interno::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* ============ Botones ============ */
+.btn-primary,
+.btn-primary:hover {
+  background-color: var(--wine) !important;
+  border-color: var(--wine) !important;
+  font-family: 'Lora', serif;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--wine-dark) !important;
+  border-color: var(--wine-dark) !important;
+}
+
+.btn-outline-secondary, .btn-secondary {
+  font-family: 'Lora', serif;
+  border-radius: 4px;
+}
+
+/* ============ Tablas ============ */
+.table {
+  font-family: 'Lora', serif;
+}
+
+.table thead {
+  background-color: #EFE6CE;
+  position: sticky;
+  top: 0;
+}
+
+.table thead th {
+  color: var(--wine-dark);
+  font-weight: 600;
+  border-bottom: 2px solid var(--brass) !important;
+}
+
+.table tfoot td {
+  background-color: #FBF0D6;
+  border-top: 2px solid var(--brass);
+  font-weight: 600;
+}
+
+/* ============ Badges de estado ============ */
+.badge {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }

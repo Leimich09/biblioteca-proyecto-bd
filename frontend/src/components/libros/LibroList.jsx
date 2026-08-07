@@ -25,11 +25,11 @@ export default function LibroList() {
   const [buscando, setBuscando] = useState(false)
   const [imagenSeleccionada, setImagenSeleccionada] = useState('')
 
-  // Confirmación de eliminación
-  const [confirmando, setConfirmando] = useState({ visible: false, idLibro: null, titulo: '' })
-
   // Buscador del catálogo
   const [busquedaCatalogo, setBusquedaCatalogo] = useState('')
+
+  // Confirmación de eliminación
+  const [confirmando, setConfirmando] = useState({ visible: false, idLibro: null, titulo: '' })
 
   const {
     register,
@@ -104,18 +104,6 @@ export default function LibroList() {
     setConfirmando({ visible: true, idLibro: libro._id, titulo: libro.titulo })
   }
 
-  // Filtra el catálogo por título, autor o categoría
-  const librosFiltrados = useMemo(() => {
-    if (!busquedaCatalogo.trim()) return libros
-    const termino = busquedaCatalogo.toLowerCase()
-    return libros.filter(
-      (l) =>
-        l.titulo?.toLowerCase().includes(termino) ||
-        l.autor?.toLowerCase().includes(termino) ||
-        l.categoria?.toLowerCase().includes(termino)
-    )
-  }, [libros, busquedaCatalogo])
-
   const confirmarEliminacion = async () => {
     setMensaje('')
     setError('')
@@ -130,6 +118,18 @@ export default function LibroList() {
     }
   }
 
+  // Filtra el catálogo por título, autor o categoría
+  const librosFiltrados = useMemo(() => {
+    if (!busquedaCatalogo.trim()) return libros
+    const termino = busquedaCatalogo.toLowerCase()
+    return libros.filter(
+      (l) =>
+        l.titulo?.toLowerCase().includes(termino) ||
+        l.autor?.toLowerCase().includes(termino) ||
+        l.categoria?.toLowerCase().includes(termino)
+    )
+  }, [libros, busquedaCatalogo])
+
   return (
     <div>
       <div className="app-card mb-4">
@@ -137,7 +137,11 @@ export default function LibroList() {
         {mensaje && <CAlert color="success">{mensaje}</CAlert>}
         {error && <CAlert color="danger">{error}</CAlert>}
 
-        {/* Buscador en Open Library */}
+        {/* Opción 1: automática */}
+        <h6 className="mb-2" style={{ color: 'var(--wine)' }}>Agregar automáticamente</h6>
+        <p className="text-muted mb-2" style={{ fontSize: '0.8rem' }}>
+          Busca el libro en Open Library y selecciona un resultado para autocompletar el formulario de abajo.
+        </p>
         <CRow className="mb-3">
           <CCol md={9}>
             <CFormInput
@@ -164,8 +168,12 @@ export default function LibroList() {
           </CListGroup>
         )}
 
-        <p className="text-muted" style={{ fontSize: '0.8rem' }}>
-          Busca y selecciona un resultado para autocompletar el formulario, o llénalo manualmente.
+        <hr className="my-4" />
+
+        {/* Opción 2: manual */}
+        <h6 className="mb-2" style={{ color: 'var(--wine)' }}>Agregar manualmente</h6>
+        <p className="text-muted mb-3" style={{ fontSize: '0.8rem' }}>
+          Completa estos campos a mano 
         </p>
 
         <CForm onSubmit={handleSubmit(onSubmit)}>
@@ -211,50 +219,64 @@ export default function LibroList() {
         </CForm>
       </div>
 
-      <CRow className="mb-3 align-items-center">
-        <CCol md={6}>
-          <h5 className="mb-0">Catálogo ({librosFiltrados.length} de {libros.length} libros)</h5>
-        </CCol>
-        <CCol md={6}>
-          <CFormInput
-            placeholder="Buscar por título, autor o categoría..."
-            value={busquedaCatalogo}
-            onChange={(e) => setBusquedaCatalogo(e.target.value)}
-          />
-        </CCol>
-      </CRow>
-      <CRow>
-        {librosFiltrados.map((libro) => (
-          <CCol md={3} key={libro._id} className="mb-4">
-            <div className="app-card h-100 text-center">
-              {libro.imagenUrl ? (
-                <img src={libro.imagenUrl} alt={libro.titulo} style={{ height: 140, objectFit: 'contain', marginBottom: 10 }} />
-              ) : (
-                <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-                  Sin portada
-                </div>
-              )}
-              <strong>{libro.titulo}</strong>
-              <p className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>{libro.autor}</p>
-              <p className="mb-2" style={{ fontSize: '0.8rem' }}>
-                Disponibles: <strong>{libro.ejemplaresDisponibles}</strong> / {libro.ejemplaresTotales}
-              </p>
-              <CButton color="danger" size="sm" variant="outline" onClick={() => pedirConfirmacionEliminar(libro)}>
-                Eliminar
-              </CButton>
-            </div>
+      <div className="app-card">
+        <CRow className="mb-3 align-items-center">
+          <CCol md={6}>
+            <h5 className="mb-0">Catálogo ({librosFiltrados.length} de {libros.length} libros)</h5>
           </CCol>
-        ))}
-      </CRow>
-      {librosFiltrados.length === 0 && (
-        <p className="text-muted">No se encontraron libros que coincidan con "{busquedaCatalogo}".</p>
-      )}
+          <CCol md={6}>
+            <CFormInput
+              placeholder="Buscar por título, autor o categoría..."
+              value={busquedaCatalogo}
+              onChange={(e) => setBusquedaCatalogo(e.target.value)}
+            />
+          </CCol>
+        </CRow>
+
+        {/* Contenedor con scroll interno para que la lista no crezca indefinidamente */}
+        <div className="scroll-interno">
+          <CRow className="catalogo-grid">
+            {librosFiltrados.map((libro) => (
+              <CCol md={3} key={libro._id} className="mb-4">
+                <div className="libro-card h-100 text-center d-flex flex-column">
+                  {libro.imagenUrl ? (
+                    <img
+                      src={libro.imagenUrl}
+                      alt={libro.titulo}
+                      style={{ height: 140, width: '100%', objectFit: 'contain', marginBottom: 10, display: 'block' }}
+                    />
+                  ) : (
+                    <div style={{ height: 140, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', marginBottom: 10 }}>
+                      Sin portada
+                    </div>
+                  )}
+                  <strong className="d-block">{libro.titulo}</strong>
+                  <p className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>{libro.autor}</p>
+                  <p className="mb-2" style={{ fontSize: '0.8rem' }}>
+                    Disponibles: <strong>{libro.ejemplaresDisponibles}</strong> / {libro.ejemplaresTotales}
+                  </p>
+                  <CButton
+                    color="danger"
+                    size="sm"
+                    variant="outline"
+                    className="mt-auto align-self-center"
+                    onClick={() => pedirConfirmacionEliminar(libro)}
+                  >
+                    Eliminar
+                  </CButton>
+                </div>
+              </CCol>
+            ))}
+          </CRow>
+          {librosFiltrados.length === 0 && (
+            <p className="text-muted">No se encontraron libros que coincidan con "{busquedaCatalogo}".</p>
+          )}
+        </div>
+      </div>
 
       <CModal visible={confirmando.visible} onClose={() => setConfirmando({ visible: false, idLibro: null, titulo: '' })}>
         <CModalHeader>Confirmar eliminación</CModalHeader>
-        <CModalBody>
-          ¿Está segura/o de eliminar <strong>{confirmando.titulo}</strong> del catálogo? Esta acción no se puede deshacer.
-        </CModalBody>
+        <CModalBody>¿Está segura/o de eliminar "{confirmando.titulo}" del catálogo? Esta acción no se puede deshacer.</CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={() => setConfirmando({ visible: false, idLibro: null, titulo: '' })}>
             Cancelar

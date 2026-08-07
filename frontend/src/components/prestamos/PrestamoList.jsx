@@ -9,14 +9,12 @@ export default function PrestamoList() {
   const [lectores, setLectores] = useState([])
   const [prestamos, setPrestamos] = useState([])
 
-  // Texto que el usuario escribe en los buscadores (no el id todavía)
   const [textoLibro, setTextoLibro] = useState('')
   const [textoLector, setTextoLector] = useState('')
 
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
 
-  // Filtro del historial
   const [busquedaHistorial, setBusquedaHistorial] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
 
@@ -39,7 +37,6 @@ export default function PrestamoList() {
     cargarTodo()
   }, [])
 
-  // Convierte lo escrito en el buscador de libro a un id real, si coincide exactamente con una opción de la lista
   const libroSeleccionado = libros.find(
     (l) => `${l.titulo} (${l.ejemplaresDisponibles} disponibles)` === textoLibro
   )
@@ -87,7 +84,6 @@ export default function PrestamoList() {
     )
   }
 
-  // Historial filtrado por texto (libro o lector) y por estado
   const prestamosFiltrados = useMemo(() => {
     return prestamos.filter((p) => {
       const tituloLibro = p.idLibro?.titulo || ''
@@ -169,44 +165,47 @@ export default function PrestamoList() {
           className="mb-3"
         />
 
-        <CTable striped responsive bordered>
-          <CTableHead>
-            <CTableRow>
-              <CTableHeaderCell>Libro</CTableHeaderCell>
-              <CTableHeaderCell>Lector</CTableHeaderCell>
-              <CTableHeaderCell>Fecha préstamo</CTableHeaderCell>
-              <CTableHeaderCell>Fecha esperada</CTableHeaderCell>
-              <CTableHeaderCell>Estado</CTableHeaderCell>
-              <CTableHeaderCell>Acción</CTableHeaderCell>
-            </CTableRow>
-          </CTableHead>
-          <CTableBody>
-            {prestamosFiltrados.map((p) => (
-              <CTableRow key={p._id}>
-                <CTableDataCell>{p.idLibro?.titulo || '(libro eliminado)'}</CTableDataCell>
-                <CTableDataCell>{p.idLector ? `${p.idLector.nombres} ${p.idLector.apellidos}` : '(lector eliminado)'}</CTableDataCell>
-                <CTableDataCell>{new Date(p.fechaPrestamo).toLocaleDateString()}</CTableDataCell>
-                <CTableDataCell>{new Date(p.fechaDevolucionEsperada).toLocaleDateString()}</CTableDataCell>
-                <CTableDataCell>
-                  {p.estado === 'devuelto' ? (
-                    <CBadge color="success">Devuelto</CBadge>
-                  ) : esAtrasado(p) ? (
-                    <CBadge color="danger">Atrasado</CBadge>
-                  ) : (
-                    <CBadge color="warning">Prestado</CBadge>
-                  )}
-                </CTableDataCell>
-                <CTableDataCell>
-                  {p.estado !== 'devuelto' && (
-                    <CButton color="secondary" size="sm" variant="outline" onClick={() => handleDevolver(p._id)}>
-                      Marcar devuelto
-                    </CButton>
-                  )}
-                </CTableDataCell>
+        {/* Contenedor con scroll interno para que el historial no crezca indefinidamente */}
+        <div className="scroll-interno">
+          <CTable striped responsive bordered>
+            <CTableHead>
+              <CTableRow>
+                <CTableHeaderCell>Libro</CTableHeaderCell>
+                <CTableHeaderCell>Lector</CTableHeaderCell>
+                <CTableHeaderCell>Fecha préstamo</CTableHeaderCell>
+                <CTableHeaderCell>Fecha esperada</CTableHeaderCell>
+                <CTableHeaderCell>Estado</CTableHeaderCell>
+                <CTableHeaderCell>Acción</CTableHeaderCell>
               </CTableRow>
-            ))}
-          </CTableBody>
-        </CTable>
+            </CTableHead>
+            <CTableBody>
+              {prestamosFiltrados.map((p) => (
+                <CTableRow key={p._id}>
+                  <CTableDataCell>{p.idLibro?.titulo || '(libro eliminado)'}</CTableDataCell>
+                  <CTableDataCell>{p.idLector ? `${p.idLector.nombres} ${p.idLector.apellidos}` : '(lector eliminado)'}</CTableDataCell>
+                  <CTableDataCell>{new Date(p.fechaPrestamo).toLocaleDateString()}</CTableDataCell>
+                  <CTableDataCell>{new Date(p.fechaDevolucionEsperada).toLocaleDateString()}</CTableDataCell>
+                  <CTableDataCell>
+                    {p.estado === 'devuelto' ? (
+                      <CBadge color="success">Devuelto</CBadge>
+                    ) : esAtrasado(p) ? (
+                      <CBadge color="danger">Atrasado</CBadge>
+                    ) : (
+                      <CBadge color="warning">Prestado</CBadge>
+                    )}
+                  </CTableDataCell>
+                  <CTableDataCell>
+                    {p.estado !== 'devuelto' && (
+                      <CButton color="secondary" size="sm" variant="outline" onClick={() => handleDevolver(p._id)}>
+                        Marcar devuelto
+                      </CButton>
+                    )}
+                  </CTableDataCell>
+                </CTableRow>
+              ))}
+            </CTableBody>
+          </CTable>
+        </div>
       </div>
     </div>
   )

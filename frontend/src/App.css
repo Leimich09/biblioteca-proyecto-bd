@@ -29,31 +29,79 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ============ Pantalla de login ============ */
 .login-page {
-  max-width: 380px;
-  margin: 90px auto 0;
-  padding: 0 16px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+}
+
+.login-card {
+  background-color: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  padding: 36px 34px 28px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.login-emblema {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--wine) 0%, var(--wine-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 2px 0 var(--brass);
 }
 
 .login-page h4 {
   font-weight: 700;
   font-size: 1.6rem;
-  text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
-.login-page h4::after {
-  content: "";
-  display: block;
-  width: 56px;
-  height: 2px;
-  background: var(--brass);
-  margin: 14px auto 0;
+.login-subtitulo {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin-bottom: 22px;
 }
 
-.login-page .login-hint {
+.login-card form {
+  text-align: left;
+}
+
+.login-card .login-hint {
   border-top: 1px solid var(--rule);
   padding-top: 16px;
+}
+
+.login-link {
+  color: var(--wine);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.login-link:hover {
+  color: var(--brass);
+}
+
+.login-cita {
+  max-width: 380px;
+  text-align: center;
   font-family: 'Lora', serif;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin-top: 24px;
+  line-height: 1.5;
 }
 
 /* ============ Barra superior: lomo de libro / estante ============ */

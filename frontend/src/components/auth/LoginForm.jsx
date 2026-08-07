@@ -17,8 +17,20 @@ const schemaRegistro = yup.object().shape({
   password: yup.string().min(6, 'Mínimo 6 caracteres').required('Contraseña requerida'),
 })
 
+// Emblema simple de libro abierto, en el color principal del tema
+function EmblemaLibro() {
+  return (
+    <div className="login-emblema">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#F6F1E4" strokeWidth="1.6">
+        <path d="M12 6c-1.6-1.2-3.6-1.8-6-1.8v13.6c2.4 0 4.4.6 6 1.8 1.6-1.2 3.6-1.8 6-1.8V4.2c-2.4 0-4.4.6-6 1.8Z" />
+        <path d="M12 6v13.6" />
+      </svg>
+    </div>
+  )
+}
+
 export default function LoginForm({ onLogin }) {
-  const [modo, setModo] = useState('login') // 'login' | 'registro'
+  const [modo, setModo] = useState('login')
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
 
@@ -63,89 +75,92 @@ export default function LoginForm({ onLogin }) {
 
   return (
     <div className="login-page">
-      <h4 className="mb-4">
-        Biblioteca — {modo === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
-      </h4>
+      <div className="login-card">
+        <EmblemaLibro />
 
-      {error && <CAlert color="danger">{error}</CAlert>}
-      {mensaje && <CAlert color="success">{mensaje}</CAlert>}
+        <h4 className="mb-1">Biblioteca</h4>
+        <p className="login-subtitulo">
+          {modo === 'login' ? 'Bienvenido de nuevo' : 'Únete al sistema'}
+        </p>
 
-      {modo === 'login' ? (
-        <CForm onSubmit={handleSubmit(onSubmitLogin)}>
-          <CFormInput
-            label="Correo"
-            placeholder="usuario@correo.com"
-            className="mb-2"
-            {...register('correo')}
-            invalid={!!errors.correo}
-            feedback={errors.correo?.message}
-          />
-          <CFormInput
-            label="Contraseña"
-            type="password"
-            className="mb-3"
-            {...register('password')}
-            invalid={!!errors.password}
-            feedback={errors.password?.message}
-          />
-          <CButton color="primary" type="submit" className="w-100">
-            Ingresar
-          </CButton>
-        </CForm>
-      ) : (
-        <CForm onSubmit={handleSubmit(onSubmitRegistro)}>
-          <CFormInput
-            label="Nombre"
-            placeholder="Tu nombre"
-            className="mb-2"
-            {...register('nombre')}
-            invalid={!!errors.nombre}
-            feedback={errors.nombre?.message}
-          />
-          <CFormInput
-            label="Correo"
-            placeholder="usuario@correo.com"
-            className="mb-2"
-            {...register('correo')}
-            invalid={!!errors.correo}
-            feedback={errors.correo?.message}
-          />
-          <CFormInput
-            label="Contraseña"
-            type="password"
-            className="mb-3"
-            {...register('password')}
-            invalid={!!errors.password}
-            feedback={errors.password?.message}
-          />
-          <CButton color="primary" type="submit" className="w-100">
-            Crear cuenta
-          </CButton>
-        </CForm>
-      )}
+        {error && <CAlert color="danger">{error}</CAlert>}
+        {mensaje && <CAlert color="success">{mensaje}</CAlert>}
 
-      <p className="login-hint text-muted mt-4 text-center" style={{ fontSize: '0.85rem' }}>
         {modo === 'login' ? (
-          <>
-            ¿No tienes cuenta?{' '}
-            <span
-              style={{ color: '#2E4057', cursor: 'pointer', fontWeight: 600 }}
-              onClick={() => cambiarModo('registro')}
-            >
-              Regístrate aquí
-            </span>
-          </>
+          <CForm onSubmit={handleSubmit(onSubmitLogin)}>
+            <CFormInput
+              label="Correo"
+              placeholder="usuario@correo.com"
+              className="mb-2"
+              {...register('correo')}
+              invalid={!!errors.correo}
+              feedback={errors.correo?.message}
+            />
+            <CFormInput
+              label="Contraseña"
+              type="password"
+              className="mb-3"
+              {...register('password')}
+              invalid={!!errors.password}
+              feedback={errors.password?.message}
+            />
+            <CButton color="primary" type="submit" className="w-100">
+              Ingresar
+            </CButton>
+          </CForm>
         ) : (
-          <>
-            ¿Ya tienes cuenta?{' '}
-            <span
-              style={{ color: '#2E4057', cursor: 'pointer', fontWeight: 600 }}
-              onClick={() => cambiarModo('login')}
-            >
-              Inicia sesión
-            </span>
-          </>
+          <CForm onSubmit={handleSubmit(onSubmitRegistro)}>
+            <CFormInput
+              label="Nombre"
+              placeholder="Tu nombre"
+              className="mb-2"
+              {...register('nombre')}
+              invalid={!!errors.nombre}
+              feedback={errors.nombre?.message}
+            />
+            <CFormInput
+              label="Correo"
+              placeholder="usuario@correo.com"
+              className="mb-2"
+              {...register('correo')}
+              invalid={!!errors.correo}
+              feedback={errors.correo?.message}
+            />
+            <CFormInput
+              label="Contraseña"
+              type="password"
+              className="mb-3"
+              {...register('password')}
+              invalid={!!errors.password}
+              feedback={errors.password?.message}
+            />
+            <CButton color="primary" type="submit" className="w-100">
+              Crear cuenta
+            </CButton>
+          </CForm>
         )}
+
+        <p className="login-hint text-muted mt-4 text-center" style={{ fontSize: '0.85rem' }}>
+          {modo === 'login' ? (
+            <>
+              ¿No tienes cuenta?{' '}
+              <span className="login-link" onClick={() => cambiarModo('registro')}>
+                Regístrate aquí
+              </span>
+            </>
+          ) : (
+            <>
+              ¿Ya tienes cuenta?{' '}
+              <span className="login-link" onClick={() => cambiarModo('login')}>
+                Inicia sesión
+              </span>
+            </>
+          )}
+        </p>
+      </div>
+
+      <p className="login-cita">
+        "Una biblioteca es el testimonio de lo que una civilización considera importante."
       </p>
     </div>
   )
